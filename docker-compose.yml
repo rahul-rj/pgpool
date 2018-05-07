@@ -1,0 +1,70 @@
+version: '3.4'
+
+# Named volumes to preserve data on restart
+volumes:
+  postgresql_master_data:
+  postgresql_slave_data:
+
+# All services in one overlay network
+networks:
+  backend:
+    driver: overlay
+
+# Secret to be created before
+secrets:
+  postgres_password:
+        file: ./my_secret.txt
+
+services:
+  pgpool:
+    image: rahuljain/pgpool
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - 'node.role == worker'
+    secrets:
+      - postgres_password
+    networks:
+      backend:
+        aliases:
+          - postgresql
+    environment:
+      - POSTGRES_DB_PASSWORD_FILE=postgres_password
+
+  postgresql_master:
+    image: rahuljain/postgresql
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - 'node.labels.type == master'
+    secrets:
+      - postgres_password
+    networks:
+      backend:
+    environment:
+      - POSTGRES_DB_PASSWORD_FILE=postgres_password
+      - SERVICE_NAME={{.Service.Name}}
+    volumes:
+      - "postgresql_master_data:/opt/pgsql/data"
+
+  postgresql_slave:
+    image: rahuljain/postgresql
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - 'node.labels.type == slave'
+    secrets:
+      - postgres_password
+    networks:
+      backend:
+    environment:
+      - POSTGRES_DB_PASSWORD_FILE=postgres_password
+      - SERVICE_NAME={{.Service.Name}}
+    volumes:
+      - "postgresql_slave_data:/opt/pgsql/data"
