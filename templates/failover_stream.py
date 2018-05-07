@@ -9,8 +9,6 @@ import sys
 import subprocess
 import psycopg2
 import psycopg2.extras
-from maestro.guestutils import *
-from maestro.exceptions import MaestroException
 import logging
 
 
@@ -62,7 +60,7 @@ def execute_command(POSTGRESQL_HOST, POSTGRESQL_CLIENT_PORT,POSTGRES_USER):
 
 POSTGRESQL_HOST1 = os.environ.get('PGSQL_HOST1', 'postgresql_master')
 POSTGRESQL_CLIENT_PORT1 = os.environ.get('PGSQL_PORT1', '5432')
-POSTGRESQL_HOST2 = os.environ.get('PGSQL_HOST2', postgresql_slave')
+POSTGRESQL_HOST2 = os.environ.get('PGSQL_HOST2', 'postgresql_slave')
 POSTGRESQL_CLIENT_PORT2 = os.environ.get('PGSQL_PORT2', '5432')
 POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
 RSYNC_PORT = os.environ.get('RSYNC_PORT', '873')
