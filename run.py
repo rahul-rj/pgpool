@@ -51,16 +51,16 @@ def convert_dns_to_ip(POSTGRESQL_HOST_LOCAL):
   return(POSTGRESQL_HOST_LOCAL)
 
 
-def get_password(DB_SECRET):
+def get_password(USERNAME):
     """ Getting password either from secret file, environment variable or setting it to default
     """
 
-    FILENAME = '/run/secrets/{}'.format(DB_SECRET.lower())
+    FILENAME = '/run/secrets/{}'.format(USERNAME)
     if os.path.isfile(FILENAME):
         with open(FILENAME) as f:
             DB_PASSWORD = f.read().splitlines()[0]
     else:
-        DB_PASSWORD = os.environ.get(DB_SECRET, POSTGRES_PASSWORD)
+        DB_PASSWORD = 'postgres'
     return DB_PASSWORD
 
 
@@ -81,12 +81,11 @@ def set_env():
   global HEALTH_CHECK_MAX_RETRIES
 
   pgpool_node_list = []
-  POSTGRES_PASSWORD = 'postgres'
   LISTENING_ADDRESS = os.environ.get('LISTENING_ADDRESS', '0.0.0.0')
   UID = pwd.getpwnam("postgres").pw_uid
   GID = grp.getgrnam("postgres").gr_gid
   POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
-  POSTGRES_PASSWORD = get_password(os.environ.get('POSTGRES_DB_PASSWORD_FILE', 'POSTGRES_PASSWORD'))
+  POSTGRES_PASSWORD = get_password('postgres')
   POSTGRESQL_MASTER = os.environ.get('POSTGRES_MASTER', 'postgresql_master')
   POSTGRESQL_SLAVE = os.environ.get('POSTGRES_SLAVE', 'postgresql_slave')
   HEALTH_CHECK_MAX_RETRIES = os.environ.get('HEALTH_CHECK_MAX_RETRIES', 10)

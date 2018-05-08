@@ -22,24 +22,24 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-def get_password(DB_SECRET):
+def get_password(USERNAME):
     """ Getting password either from secret file, environment variable or setting it to default
     """
 
-    FILENAME = '/run/secrets/{}'.format(DB_SECRET.lower())
+    FILENAME = '/run/secrets/{}'.format(USERNAME)
     if os.path.isfile(FILENAME):
         with open(FILENAME) as f:
             DB_PASSWORD = f.read().splitlines()[0]
     else:
-        DB_PASSWORD = os.environ.get(DB_SECRET, POSTGRES_PASSWORD)
+        DB_PASSWORD = 'postgres'
     return DB_PASSWORD
+
 
 def execute_command(POSTGRESQL_HOST, POSTGRESQL_CLIENT_PORT,POSTGRES_USER):
   """ executing the remote SQL command
   """
 
-  POSTGRES_PASSWORD = 'postgres'
-  POSTGRES_PASSWORD = get_password(os.environ.get('POSTGRES_DB_PASSWORD_FILE', 'POSTGRES_PASSWORD'))
+  POSTGRES_PASSWORD = get_password('postgres')
   con = None
   try:
       con = psycopg2.connect(host=POSTGRESQL_HOST, port=POSTGRESQL_CLIENT_PORT,

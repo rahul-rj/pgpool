@@ -1,6 +1,6 @@
 version: '3.4'
 
-# Named volumes to preserve data on restart
+# Named volumes to preserve data on recreate
 volumes:
   postgresql_master_data:
   postgresql_slave_data:
@@ -12,7 +12,7 @@ networks:
 
 # Secret to be created before
 secrets:
-  postgres_password:
+  postgres:
         file: ./my_secret.txt
 
 services:
@@ -25,13 +25,12 @@ services:
         constraints:
           - 'node.role == worker'
     secrets:
-      - postgres_password
+      - source: postgres
+        target: postgres
     networks:
       backend:
         aliases:
           - postgresql
-    environment:
-      - POSTGRES_DB_PASSWORD_FILE=postgres_password
 
   postgresql_master:
     image: rahuljain/postgresql
@@ -42,11 +41,11 @@ services:
         constraints:
           - 'node.labels.type == master'
     secrets:
-      - postgres_password
+      - source: postgres
+        target: postgres
     networks:
       backend:
     environment:
-      - POSTGRES_DB_PASSWORD_FILE=postgres_password
       - SERVICE_NAME={{.Service.Name}}
     volumes:
       - "postgresql_master_data:/opt/pgsql/data"
@@ -60,11 +59,11 @@ services:
         constraints:
           - 'node.labels.type == slave'
     secrets:
-      - postgres_password
+      - source: postgres
+        target: postgres
     networks:
       backend:
     environment:
-      - POSTGRES_DB_PASSWORD_FILE=postgres_password
       - SERVICE_NAME={{.Service.Name}}
     volumes:
       - "postgresql_slave_data:/opt/pgsql/data"
