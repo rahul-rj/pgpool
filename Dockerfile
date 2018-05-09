@@ -18,8 +18,8 @@ ENV LANG en_US.utf8
 RUN apk --update --no-cache add py-psycopg2 pgpool postgresql-client=${POSTGRESQL_VERSION}-r0 --update-cache --repository http://dl-3.alpinelinux.org/alpine/v3.4/main  --allow-untrusted && \
     rm -rf /var/cache/apk/*
 
-RUN mkdir /etc/pgpool-II /var/run/pgpool /var/log/pgpool /var/run/postgresql /var/log/postgresql && \
-    chown postgres /etc/pgpool-II /var/run/pgpool /var/log/pgpool /var/run/postgresql /var/log/postgresql
+RUN mkdir /etc/pgpool-II /var/run/pgpool && \
+    chown postgres /etc/pgpool-II /var/run/pgpool
 
 EXPOSE 5432
 

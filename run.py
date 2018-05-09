@@ -26,31 +26,6 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-def convert_dns_to_ip(POSTGRESQL_HOST_LOCAL):
-  """ convert dns to ip
-  """
-
-  if IP_FORMAT == 'IPV6':
-      try:
-          if socket.inet_pton(socket.AF_INET6, POSTGRESQL_HOST_LOCAL):
-              POSTGRESQL_HOST_LOCAL = POSTGRESQL_HOST_LOCAL
-      except socket.error:
-          try:
-              POSTGRESQL_HOST_LOCAL = socket.getaddrinfo(POSTGRESQL_HOST_LOCAL, None, socket.AF_INET6)[0][4][0]
-          except socket.error:
-              POSTGRESQL_HOST_LOCAL = '::1'
-  else:
-      try:
-          if socket.inet_aton(POSTGRESQL_HOST_LOCAL):
-              POSTGRESQL_HOST_LOCAL = POSTGRESQL_HOST_LOCAL
-      except socket.error:
-          try:
-              POSTGRESQL_HOST_LOCAL = socket.gethostbyname(POSTGRESQL_HOST_LOCAL)
-          except socket.error:
-              POSTGRESQL_HOST_LOCAL = '127.0.0.1'
-  return(POSTGRESQL_HOST_LOCAL)
-
-
 def get_password(USERNAME):
     """ Getting password either from secret file, environment variable or setting it to default
     """
@@ -75,7 +50,6 @@ def set_env():
   global IP_FORMAT
   global LISTENING_ADDRESS
   global POSTGRES_USER
-  global POSTGRES_PASSWORD
   global POSTGRESQL_MASTER
   global POSTGRESQL_SLAVE
   global HEALTH_CHECK_MAX_RETRIES
@@ -85,7 +59,6 @@ def set_env():
   UID = pwd.getpwnam("postgres").pw_uid
   GID = grp.getgrnam("postgres").gr_gid
   POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
-  POSTGRES_PASSWORD = get_password('postgres')
   POSTGRESQL_MASTER = os.environ.get('POSTGRES_MASTER', 'postgresql_master')
   POSTGRESQL_SLAVE = os.environ.get('POSTGRES_SLAVE', 'postgresql_slave')
   HEALTH_CHECK_MAX_RETRIES = os.environ.get('HEALTH_CHECK_MAX_RETRIES', 10)
@@ -124,13 +97,13 @@ def configure_pgpool():
     conf['POSTGRESQL_MASTER']= POSTGRESQL_MASTER
     conf['POSTGRESQL_SLAVE']= POSTGRESQL_SLAVE
     conf['POSTGRES_USER']= POSTGRES_USER
-    conf['POSTGRES_PASSWORD']= POSTGRES_PASSWORD
+    conf['POSTGRES_PASSWORD']= get_password('postgres')
     conf['HEALTH_CHECK_MAX_RETRIES']= HEALTH_CHECK_MAX_RETRIES
     conf['LISTENING_ADDRESS']= LISTENING_ADDRESS
     render('pgpool.conf', conf)
       
     # creating pool_passwd file with the user and md5 password
-    subprocess.Popen(['/usr/bin/pg_md5', '-f', '/etc/pgpool-II/pgpool.conf', '-m', '-u', POSTGRES_USER, POSTGRES_PASSWORD]).communicate()
+    subprocess.Popen(['/usr/bin/pg_md5', '-f', '/etc/pgpool-II/pgpool.conf', '-m', '-u', POSTGRES_USER, get_password('postgres')]).communicate()
     logger.info('pool_passwd file created with user {}'.format(POSTGRES_USER))
 
 
@@ -153,7 +126,7 @@ def configure_pcppass():
 
   conf = {}
   conf['POSTGRES_USER']= POSTGRES_USER
-  conf['POSTGRES_PASSWORD']= POSTGRES_PASSWORD
+  conf['POSTGRES_PASSWORD']= get_password('postgres')
   render('.pcppass', conf)
   os.chmod('/etc/pgpool-II/.pcppass', 0600)
 
