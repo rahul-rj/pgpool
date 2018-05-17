@@ -1,1 +1,1 @@
-localhost:9898:{{ POSTGRES_USER }}:{{ POSTGRES_PASSWORD }}
+localhost:9898:postgres:{{ POSTGRES_PASSWORD }}

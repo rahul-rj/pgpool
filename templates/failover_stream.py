@@ -35,15 +35,14 @@ def get_password(USERNAME):
     return DB_PASSWORD
 
 
-def execute_command(POSTGRESQL_HOST, POSTGRESQL_CLIENT_PORT,POSTGRES_USER):
+def execute_command(POSTGRESQL_HOST, POSTGRESQL_CLIENT_PORT):
   """ executing the remote SQL command
   """
 
-  POSTGRES_PASSWORD = get_password('postgres')
   con = None
   try:
       con = psycopg2.connect(host=POSTGRESQL_HOST, port=POSTGRESQL_CLIENT_PORT,
-                             database='postgres', user=POSTGRES_USER, password=POSTGRES_PASSWORD)
+                             database='postgres', user='postgres', password=get_password('postgres'))
       cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
       cursor.execute("select pg_is_in_recovery()")
       answer = cursor.fetchall()
@@ -62,19 +61,18 @@ POSTGRESQL_HOST1 = os.environ.get('PGSQL_HOST1', 'postgresql_master')
 POSTGRESQL_CLIENT_PORT1 = os.environ.get('PGSQL_PORT1', '5432')
 POSTGRESQL_HOST2 = os.environ.get('PGSQL_HOST2', 'postgresql_slave')
 POSTGRESQL_CLIENT_PORT2 = os.environ.get('PGSQL_PORT2', '5432')
-POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
 RSYNC_PORT = os.environ.get('RSYNC_PORT', '873')
 CHECK = sys.argv[1]
 
 
 if (CHECK == '0'):
-    code=execute_command(POSTGRESQL_HOST2,POSTGRESQL_CLIENT_PORT2,POSTGRES_USER)
+    code=execute_command(POSTGRESQL_HOST2,POSTGRESQL_CLIENT_PORT2)
     if code[0][0]:
        CURL_COMMAND = 'http://' + POSTGRESQL_HOST2 + ':' + '5000/failover'
        subprocess.call(['/usr/bin/curl', '-s',  CURL_COMMAND])
        pid = subprocess.Popen([sys.executable, "/etc/pgpool-II/templates/repair_pgpool.py", '1'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 elif (CHECK == '1'):
-    code=execute_command(POSTGRESQL_HOST1,POSTGRESQL_CLIENT_PORT1,POSTGRES_USER)
+    code=execute_command(POSTGRESQL_HOST1,POSTGRESQL_CLIENT_PORT1)
     if code[0][0]:
        CURL_COMMAND = 'http://' + POSTGRESQL_HOST1 + ':' + '5000/failover'
        subprocess.call(['/usr/bin/curl', '-s',  CURL_COMMAND])
